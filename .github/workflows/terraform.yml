@@ -70,7 +70,4 @@ jobs:
 
     - name: Terraform Apply
       if: github.ref == 'refs/heads/"main"'
-      run: terraform apply -input=false \ 
-        -var api_name="${{ env.BMB_AUTH_API_NAME }}" \ 
-        -var vpc_name="${{ env.BMB_EKS_CLUSTER_VPC }}" \ 
-        -var nlb_name="${{ env.BMB_INTERNAL_LB_NAME }}"
+      run: terraform apply  -input=false
