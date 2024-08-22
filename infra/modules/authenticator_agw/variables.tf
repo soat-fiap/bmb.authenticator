@@ -21,3 +21,11 @@ variable "profile" {
 variable "region" {
   type = string
 }
+
+variable "authenticator_lambda_arn" {
+  type = string
+}
+
+variable "authenticator_lambda_name" {
+  type = string
+}

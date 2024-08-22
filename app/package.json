@@ -1,0 +1,16 @@
+{
+  "name": "cpf-authenticator",
+  "version": "1.0.0",
+  "description": "validates cognito user by cpf",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-cognito-identity-provider": "^3.635.0",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "type": "module"
+}

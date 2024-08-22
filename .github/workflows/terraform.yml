@@ -69,5 +69,5 @@ jobs:
       run: terraform plan -input=false
 
     - name: Terraform Apply
-      if: github.ref == 'refs/heads/"main"'
+      if: github.ref == 'refs/heads/"main"' && false
       run: terraform apply -input=false
