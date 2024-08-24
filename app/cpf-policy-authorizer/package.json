@@ -20,5 +20,10 @@
             "mjs",
             "js"
         ]
-    }
+    },
+    "dependencies": {
+        "@aws-sdk/client-cognito-identity-provider": "^3.637.0",
+        "jsonwebtoken": "^9.0.2"
+    },
+    "type": "module"
 }

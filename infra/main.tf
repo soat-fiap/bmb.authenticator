@@ -72,9 +72,9 @@ module "authenticator_lambda_function" {
 
   function_name = "authenticator_x"
   description   = "lambda used to authenticate users against cognito"
-  handler       = "index.handler"
+  handler       = "src/handlers/hello-from-lambda.handler"
   runtime       = "nodejs18.x"
-  source_path   = "index.mjs"
+  source_path   = "../app/cpf-policy-authorizer"
 
   attach_policy_json = true
   policy_json        = <<-EOT
@@ -88,7 +88,7 @@ module "authenticator_lambda_function" {
               "cognito-idp:AdminListGroupsForUser",
               "cognito-idp:AdminGetUser"
           ],
-          "Resource": "${module.aws_cognito_user_pool_simple.arn}"
+          "Resource": "${module.aws_cognito_user_pool_simple.arn}" 
         }
       ]
     }
@@ -99,6 +99,8 @@ module "authenticator_lambda_function" {
     "ACCESS_TOKEN_ISSUER"   = "http://italo.com"
     "ACCESS_TOKEN_AUDIENCE" = "http://italo.com/client",
     "ACCESS_TOKEN_EXP"      = 300
+    "USER_POOL_ID"          = "us-east-",
+    "REGION"                = "us-east-1"
   }
 
   tags = {

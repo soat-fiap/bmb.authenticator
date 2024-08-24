@@ -147,11 +147,11 @@ resource "aws_lambda_permission" "lambda_agw_invoke_permission" {
 
 
 resource "aws_apigatewayv2_authorizer" "external" {
-  api_id                            = module.api_gateway.api_id
-  authorizer_type                   = "REQUEST"
-  identity_sources                  = ["$request.header.Authorization"]
-  name                              = "teste"
+  api_id          = module.api_gateway.api_id
+  authorizer_type = "REQUEST"
+  name                              = "cpf_authorizer"
   authorizer_payload_format_version = "2.0"
+  authorizer_result_ttl_in_seconds  = 0
   enable_simple_responses           = false
   authorizer_uri                    = var.authenticator_lambda_arn
 }
