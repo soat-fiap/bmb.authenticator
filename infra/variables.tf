@@ -26,3 +26,9 @@ variable "nlb_name" {
   type    = string
   default = "bmb-internal-connection"
 }
+
+variable "user_pool_name" {
+  type        = string
+  description = "Cognito user pool name"
+  default     = "bmb_users_pool"
+}

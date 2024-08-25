@@ -6,14 +6,15 @@ const client = new CognitoIdentityProviderClient({
 });
 
 export const getUser = async (username) => {
-    console.info("searching user by username");
+    console.info("searching user by username: ", username);
     try {
         const command = new AdminGetUserCommand({
             UserPoolId,
             Username: username,
         });
 
-        var cognitoUser = await client.send(command);
+        const cognitoUser = await client.send(command);
+        console.log({ cognitoUser })
         return mapCognitoUserAttributes(cognitoUser.UserAttributes);
     } catch (error) {
         console.error(error);
@@ -29,7 +30,7 @@ const mapCognitoUserAttributes = (userAttributes) => userAttributes.reduce((prev
 export const isAdmin = (userGroups) => userGroups.indexOf("admin") >= 0;
 
 export const getUserGroups = async (username) => {
-    console.info("searching user groups");
+    console.info("searching user groups: ", username);
 
     const command = new AdminListGroupsForUserCommand({
         UserPoolId,

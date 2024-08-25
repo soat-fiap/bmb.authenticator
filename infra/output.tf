@@ -26,6 +26,6 @@ output "api" {
 ################################################################################
 # LB
 ################################################################################
-# output "internal_elb" {
-#   value = data.aws_lb_listener.nlb_listener.arn
-# }
+output "internal_elb" {
+  value = data.aws_lb_listener.nlb_listener.arn
+}

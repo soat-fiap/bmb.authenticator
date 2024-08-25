@@ -101,13 +101,13 @@ module "api_gateway" {
   }
 
   # VPC Link
-  # vpc_links = {
-  #   bmb-vpc = {
-  #     name               = "${var.api_name}-vpc_link"
-  #     security_group_ids = [module.api_gateway_security_group.security_group_id]
-  #     subnet_ids         = var.vpc_link_subnets
-  #   }
-  # }
+  vpc_links = {
+    bmb-vpc = {
+      name               = "${var.api_name}-vpc_link"
+      security_group_ids = [module.api_gateway_security_group.security_group_id]
+      subnet_ids         = var.vpc_link_subnets
+    }
+  }
 
   tags = {
     Terraform = "true"
@@ -126,25 +126,23 @@ resource "aws_lambda_permission" "lambda_agw_invoke_permission" {
   source_arn    = "${module.api_gateway.api_execution_arn}/authorizers/${aws_apigatewayv2_authorizer.external.id}"
 }
 
-# module "api_gateway_security_group" {
-#   source  = "terraform-aws-modules/security-group/aws"
-#   version = "~> 5.1.2"
+module "api_gateway_security_group" {
+  source  = "terraform-aws-modules/security-group/aws"
+  version = "~> 5.1.2"
 
-#   name        = "bmb-vpclink-sg"
-#   description = "API Gateway group for example usage"
-#   vpc_id      = var.vpc_id
+  name        = "bmb-vpclink-sg"
+  description = "API Gateway group for example usage"
+  vpc_id      = var.vpc_id
 
-#   ingress_cidr_blocks = ["0.0.0.0/0"]
-#   ingress_rules       = ["all-all"]
+  ingress_cidr_blocks = ["0.0.0.0/0"]
+  ingress_rules       = ["all-all"]
 
-#   egress_rules = ["all-all"]
+  egress_rules = ["all-all"]
 
-#   tags = {
-#     Terraform = "true"
-#     Created   = timestamp()
-#   }
-# }
-
+  tags = {
+    Terraform = "true"
+  }
+}
 
 resource "aws_apigatewayv2_authorizer" "external" {
   api_id          = module.api_gateway.api_id
