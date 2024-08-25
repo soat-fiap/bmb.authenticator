@@ -67,16 +67,30 @@ module "api_gateway" {
     #     uri             = var.nlb_listener_arn
     #     method          = "ANY"
     #     vpc_link_key    = "bmb-vpc"
+
+    #     authorizer_id      = aws_apigatewayv2_authorizer.external.id
+    #     response_parameters = [
+    #       {
+    #         status_code = 200
+    #         mappings = {
+    #           "append:header.accessToken" = "$context.authorizer.accessToken"
+    #         }
+    #       }
+    #     ]
+
+    #     request_parameters = {
+    #       "append:header.accessToken" = "$context.authorizer.accessToken"
+    #     }
     #   }
     # }
 
-    "GET /{proxy+}" = {
+    "ANY /api/{proxy+}" = {
       authorization_type = "CUSTOM"
       authorizer_id      = aws_apigatewayv2_authorizer.external.id
       integration = {
         type   = "HTTP_PROXY"
-        uri    = "https://nginx.org/en"
-        method = "GET"
+        uri    = "https://webhook.site/465cc12d-b806-4323-a2e2-44403e711e42"
+        method = "ANY"
 
         response_parameters = [
           {
@@ -86,18 +100,35 @@ module "api_gateway" {
             }
           }
         ]
+
+        request_parameters = {
+          "append:header.accessToken" = "$context.authorizer.accessToken"
+        }
       }
     }
 
-    # "GET /hello" = {
-    #   integration = {
-    #     uri                    = var.authenticator_lambda_arn
-    #     payload_format_version = "2.0"
-    #     timeout_milliseconds   = 1200
-    #     description            = "connect with lambda"
-    #     integration_type       = "AWS_PROXY"
-    #   }
-    # }
+     "GET /swagger/{proxy+}" = {
+      authorization_type = "CUSTOM"
+      authorizer_id      = aws_apigatewayv2_authorizer.external.id
+      integration = {
+        type   = "HTTP_PROXY"
+        uri    = "https://webhook.site/465cc12d-b806-4323-a2e2-44403e711e42"
+        method = "ANY"
+
+        response_parameters = [
+          {
+            status_code = 200
+            mappings = {
+              "append:header.accessToken" = "$context.authorizer.accessToken"
+            }
+          }
+        ]
+
+        request_parameters = {
+          "append:header.accessToken" = "$context.authorizer.accessToken"
+        }
+      }
+    }
   }
 
   # VPC Link
@@ -145,8 +176,8 @@ module "api_gateway_security_group" {
 }
 
 resource "aws_apigatewayv2_authorizer" "external" {
-  api_id          = module.api_gateway.api_id
-  authorizer_type = "REQUEST"
+  api_id                            = module.api_gateway.api_id
+  authorizer_type                   = "REQUEST"
   name                              = "cpf_authorizer"
   authorizer_payload_format_version = "2.0"
   authorizer_result_ttl_in_seconds  = 0

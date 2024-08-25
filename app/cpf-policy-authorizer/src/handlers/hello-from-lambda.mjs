@@ -21,7 +21,6 @@ export const handler = async (event, context, callback) => {
     const identityProvided = !!cpf;
 
     if (identityProvided) {
-
         const user = await getUser(cpf);
         let payload = {
             cpf

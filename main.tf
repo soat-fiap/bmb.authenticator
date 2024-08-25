@@ -7,7 +7,7 @@ terraform {
   }
 }
 
-data "aws_vpc" "vpc_sample" {
+data "aws_vpc" "bmb_vpc" {
   filter {
     name   = "tag:Name"
     values = [var.vpc_name]
@@ -22,7 +22,7 @@ data "aws_vpc" "vpc_sample" {
 data "aws_subnets" "private_subnets" {
   filter {
     name   = "vpc-id"
-    values = [data.aws_vpc.vpc_sample.id]
+    values = [data.aws_vpc.bmb_vpc.id]
   }
 
   filter {
@@ -50,6 +50,14 @@ data "aws_cognito_user_pools" "bmb_selected_user_pool" {
   name = var.user_pool_name
 }
 
+data "archive_file" "lambda_zip" {
+  type             = "zip"
+  source_dir       = "${path.module}/app/cpf-policy-authorizer"
+  output_file_mode = "0666"
+  output_path      = "${path.module}/files/lambda-my-function3.zip"
+}
+
+
 module "authenticator_lambda_function" {
   source  = "terraform-aws-modules/lambda/aws"
   version = "~> 7.7.1"
@@ -58,7 +66,9 @@ module "authenticator_lambda_function" {
   description   = "lambda used to authenticate users against cognito"
   handler       = "src/handlers/hello-from-lambda.handler"
   runtime       = "nodejs18.x"
-  source_path   = "../app/cpf-policy-authorizer"
+
+  local_existing_package = data.archive_file.lambda_zip.output_path
+  create_package         = false
 
   attach_policy_json = true
   policy_json        = <<-EOT
@@ -96,10 +106,10 @@ module "authenticator_api" {
   source = "./modules/authenticator_agw"
 
   api_name         = var.api_name
-  vpc_id           = data.aws_vpc.vpc_sample.id
+  vpc_id           = data.aws_vpc.bmb_vpc.id
   nlb_listener_arn = data.aws_lb_listener.nlb_listener.arn
   vpc_link_subnets = data.aws_subnets.private_subnets.ids
-  # vpc_id                    = "dataaws_vpc.vpc_sample.id"
+  # vpc_id                    = "dataaws_vpc.bmb_vpc.id"
   # nlb_listener_arn          = "dataaws_lb_listener.nlb_listener.arn"
   # vpc_link_subnets          = ["dataaws_subnets.private_subnets.ids"]
   profile                   = var.profile
