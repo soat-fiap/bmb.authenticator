@@ -1,10 +1,10 @@
 terraform {
-  backend "remote" {
-    organization = "FiapPostech-SOAT"
-    workspaces {
-      name = "bmb-authenticator"
-    }
-  }
+  # backend "remote" {
+  #   organization = "FiapPostech-SOAT"
+  #   workspaces {
+  #     name = "bmb-authenticator"
+  #   }
+  # }
 }
 
 data "aws_vpc" "bmb_vpc" {
@@ -37,7 +37,9 @@ data "aws_subnets" "private_subnets" {
 }
 
 data "aws_lb" "eks_internal_elb" {
-  name = var.nlb_name
+  tags = {
+    "kubernetes.io/service-name" = "default/${var.nlb_name}"
+  }
 }
 
 data "aws_lb_listener" "nlb_listener" {
@@ -56,7 +58,6 @@ data "archive_file" "lambda_zip" {
   output_file_mode = "0666"
   output_path      = "${path.module}/files/lambda-my-function3.zip"
 }
-
 
 module "authenticator_lambda_function" {
   source  = "terraform-aws-modules/lambda/aws"
@@ -89,9 +90,9 @@ module "authenticator_lambda_function" {
   EOT
 
   environment_variables = {
-    "ACCESS_TOKEN_SECRET"   = "my-secret"
-    "ACCESS_TOKEN_ISSUER"   = "http://italo.com"
-    "ACCESS_TOKEN_AUDIENCE" = "http://italo.com/client",
+    "ACCESS_TOKEN_SECRET"   = var.jwt_secret
+    "ACCESS_TOKEN_ISSUER"   = "https://localhost:7004"
+    "ACCESS_TOKEN_AUDIENCE" = "https://localhost:7004",
     "ACCESS_TOKEN_EXP"      = 300
     "USER_POOL_ID"          = data.aws_cognito_user_pools.bmb_selected_user_pool.ids[0],
     "REGION"                = var.region

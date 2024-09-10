@@ -14,21 +14,21 @@ output "api" {
 ################################################################################
 # VPC
 ################################################################################
-output "vpc" {
-  value = data.aws_vpc.bmb_vpc.id
-}
+# output "vpc" {
+#   value = data.aws_vpc.bmb_vpc.id
+# }
 
-output "subnets" {
-  value = data.aws_subnets.private_subnets.ids
-}
+# output "subnets" {
+#   value = data.aws_subnets.private_subnets.ids
+# }
 
 
 ################################################################################
 # LB
 ################################################################################
-output "internal_elb" {
-  value = data.aws_lb_listener.nlb_listener.arn
-}
+# output "internal_elb" {
+#   value = data.aws_lb_listener.nlb_listener.arn
+# }
 
 output "path" {
   value = "${path.cwd}/${data.archive_file.lambda_zip.id}"

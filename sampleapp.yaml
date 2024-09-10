@@ -61,4 +61,4 @@ spec:
     spec:
       containers:
         - name: sampleapi-container
-          image: italopessoa/sampleapi:v1
+          image: italopessoa/sampleapi:v2

@@ -24,11 +24,17 @@ variable "region" {
 
 variable "nlb_name" {
   type    = string
-  default = "bmb-nlb-controller"
+  default = "bmb-apgw-eks"
 }
 
 variable "user_pool_name" {
   type        = string
   description = "Cognito user pool name"
   default     = "bmb_users_pool"
+}
+
+variable "jwt_secret" {
+  type = string
+  sensitive = true
+  default = "PkOhRwy6UtniEMo7lLWp3bADctYgnDHCTvH+2YkDeGg="
 }

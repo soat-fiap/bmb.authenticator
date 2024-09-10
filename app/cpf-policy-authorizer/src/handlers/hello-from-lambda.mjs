@@ -30,7 +30,7 @@ export const handler = async (event, context, callback) => {
             payload = { ...payload, ...user }
             let userGroups = await getUserGroups(cpf);
             let hasAdminRole = isAdmin(userGroups);
-            payload["role"] = hasAdminRole ? "Admin" : "User";
+            payload["role"] = userGroups;
 
             let token = generateAccessToken(payload);
             let policy = generateAuthPolicy(cpf, event.routeArn, hasAdminRole, token);
@@ -41,7 +41,9 @@ export const handler = async (event, context, callback) => {
             callback("Unauthorized", null);
         }
     } else {
-        let token = generateAccessToken({});
+        let token = generateAccessToken({
+            role: ["user"]
+        });
         return generateAuthPolicy("anom", event.routeArn, true, token);
     }
 };
@@ -67,14 +69,14 @@ const generateAuthPolicy = (principalId, routeArn, isAdmin, accessToken) => {
         }
 
         var policy = new AuthPolicy(principalId, awsAccountId, apiOptions);
-        if (isAdmin) {
-            console.log("ALLOW")
-            policy.allowAllMethods();
-        }
-        else {
-            console.log("DENY")
-            policy.denyAllMethods();
-        }
+        // if (isAdmin) {
+        console.log("ALLOW")
+        policy.allowAllMethods();
+        // }
+        // else {
+        //     console.log("DENY")
+        //     policy.denyAllMethods();
+        // }
 
         // policy.allowMethod(AuthPolicy.HttpVerb.GET, "/users/username");
 

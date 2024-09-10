@@ -60,7 +60,7 @@ module "api_gateway" {
 
   # Routes & Integration(s)
   routes = {
-    # "ANY /{proxy+}" = {
+    # "ANY /doc/{proxy+}" = {
     #   integration = {
     #     connection_type = "VPC_LINK"
     #     type            = "HTTP_PROXY"
@@ -68,7 +68,45 @@ module "api_gateway" {
     #     method          = "ANY"
     #     vpc_link_key    = "bmb-vpc"
 
-    #     authorizer_id      = aws_apigatewayv2_authorizer.external.id
+    #     request_parameters = {
+    #       "overwrite:path" = "swagger"
+    #     }
+    #   }
+    # }
+
+    "ANY /{proxy+}" = {
+      authorization_type = "CUSTOM"
+      authorizer_id      = aws_apigatewayv2_authorizer.external.id
+      integration = {
+        connection_type = "VPC_LINK"
+        type            = "HTTP_PROXY"
+        uri             = var.nlb_listener_arn
+        method          = "ANY"
+        vpc_link_key    = "bmb-vpc"
+
+        # authorizer_id = aws_apigatewayv2_authorizer.external.id
+        response_parameters = [
+          {
+            status_code = 200
+            mappings = {
+              "append:header.accessToken" = "$context.authorizer.accessToken"
+            }
+          }
+        ]
+
+        request_parameters = {
+          "append:header.accessToken" = "$context.authorizer.accessToken"
+        }
+      }
+    }
+
+    # "ANY /api/{proxy+}" = {
+    #   authorization_type = "CUSTOM"
+    #   authorizer_id     = aws_apigatewayv2_authorizer.external.id
+    #   integration = {
+    #     type   = "HTTP_PROXY"
+    #     uri    = "https://webhook.site/b47f1159-1979-4007-9e64-516dab1933f8"
+    #     method = "ANY"
     #     response_parameters = [
     #       {
     #         status_code = 200
@@ -84,51 +122,28 @@ module "api_gateway" {
     #   }
     # }
 
-    "ANY /api/{proxy+}" = {
-      authorization_type = "CUSTOM"
-      authorizer_id      = aws_apigatewayv2_authorizer.external.id
-      integration = {
-        type   = "HTTP_PROXY"
-        uri    = "https://webhook.site/465cc12d-b806-4323-a2e2-44403e711e42"
-        method = "ANY"
+    # "GET /swagger/{proxy+}" = {
+    #   authorization_type = "CUSTOM"
+    #   authorizer_id      = aws_apigatewayv2_authorizer.external.id
+    #   integration = {
+    #     type   = "HTTP_PROXY"
+    #     uri    = "https://webhook.site/465cc12d-b806-4323-a2e2-44403e711e42"
+    #     method = "ANY"
 
-        response_parameters = [
-          {
-            status_code = 200
-            mappings = {
-              "append:header.accessToken" = "$context.authorizer.accessToken"
-            }
-          }
-        ]
+    #     response_parameters = [
+    #       {
+    #         status_code = 200
+    #         mappings = {
+    #           "append:header.accessToken" = "$context.authorizer.accessToken"
+    #         }
+    #       }
+    #     ]
 
-        request_parameters = {
-          "append:header.accessToken" = "$context.authorizer.accessToken"
-        }
-      }
-    }
-
-     "GET /swagger/{proxy+}" = {
-      authorization_type = "CUSTOM"
-      authorizer_id      = aws_apigatewayv2_authorizer.external.id
-      integration = {
-        type   = "HTTP_PROXY"
-        uri    = "https://webhook.site/465cc12d-b806-4323-a2e2-44403e711e42"
-        method = "ANY"
-
-        response_parameters = [
-          {
-            status_code = 200
-            mappings = {
-              "append:header.accessToken" = "$context.authorizer.accessToken"
-            }
-          }
-        ]
-
-        request_parameters = {
-          "append:header.accessToken" = "$context.authorizer.accessToken"
-        }
-      }
-    }
+    #     request_parameters = {
+    #       "append:header.accessToken" = "$context.authorizer.accessToken"
+    #     }
+    #   }
+    # }
   }
 
   # VPC Link
