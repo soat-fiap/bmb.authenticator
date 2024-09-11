@@ -48,6 +48,7 @@ jobs:
 
 
   terraform-plan:
+    needs: [test]
     if: github.event_name != 'pull_request'
     environment: dev
     name: "Terraform Plan"
@@ -63,7 +64,7 @@ jobs:
         run: |
           cat <<EOF > auth.auto.tfvars
           api_name = "${{ vars.BMB_AUTH_API_NAME }}"
-          eks_vpc_name = "${{ vars.BMB_EKS_CLUSTER_VPC }}"
+          vpc_name = "${{ vars.BMB_EKS_CLUSTER_VPC }}"
           nlb_name = "${{ vars.BMB_INTERNAL_LB_NAME }}"
           user_pool_name = "${{ vars.BMB_USER_POOL_NAME }}"
           jwt_secret = "${{ secrets.BMB_JWT_SECRET_KEY }}"
@@ -143,7 +144,7 @@ jobs:
         run: |
           cat <<EOF > auth.auto.tfvars
           api_name = "${{ vars.BMB_AUTH_API_NAME }}"
-          eks_vpc_name = "${{ vars.BMB_EKS_CLUSTER_VPC }}"
+          vpc_name = "${{ vars.BMB_EKS_CLUSTER_VPC }}"
           nlb_name = "${{ vars.BMB_INTERNAL_LB_NAME }}"
           user_pool_name = "${{ vars.BMB_USER_POOL_NAME }}"
           jwt_secret = "${{ secrets.BMB_JWT_SECRET_KEY }}"
