@@ -48,6 +48,7 @@ jobs:
 
 
   terraform-plan:
+    if: github.event_name != 'pull_request'
     environment: dev
     name: "Terraform Plan"
     runs-on: ubuntu-latest
