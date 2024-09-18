@@ -70,6 +70,12 @@ jobs:
         working-directory: app/cpf-policy-authorizer
         run: npm install
 
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: lambda-plan
+          path: files/lambda.zip
+
       - name: Create .auto.tfvars file
         run: |
           cat <<EOF > auth.auto.tfvars
