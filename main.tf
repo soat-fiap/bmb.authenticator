@@ -91,10 +91,10 @@ module "authenticator_lambda_function" {
 
   environment_variables = {
     "ACCESS_TOKEN_SECRET"   = var.jwt_secret
-    "ACCESS_TOKEN_ISSUER"   = "https://localhost:7004"
-    "ACCESS_TOKEN_AUDIENCE" = "https://localhost:7004",
+    "ACCESS_TOKEN_ISSUER"   = var.jwt_issuer
+    "ACCESS_TOKEN_AUDIENCE" = var.jwt_audience
     "ACCESS_TOKEN_EXP"      = 300
-    "USER_POOL_ID"          = data.aws_cognito_user_pools.bmb_selected_user_pool.ids[0],
+    "USER_POOL_ID"          = data.aws_cognito_user_pools.bmb_selected_user_pool.ids[0]
     "REGION"                = var.region
   }
 

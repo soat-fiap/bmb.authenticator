@@ -68,6 +68,8 @@ jobs:
           nlb_name = "${{ vars.BMB_INTERNAL_LB_NAME }}"
           user_pool_name = "${{ vars.BMB_USER_POOL_NAME }}"
           jwt_secret = "${{ secrets.BMB_JWT_SECRET_KEY }}"
+          jwt_issuer = "${{ vars.BMB_JWT_ISSUER }}"
+          jwt_audience = "${{ vars.BMB_JWT_AUDIENCE }}"
           EOF
 
       - name: Upload Configuration
@@ -148,6 +150,8 @@ jobs:
           nlb_name = "${{ vars.BMB_INTERNAL_LB_NAME }}"
           user_pool_name = "${{ vars.BMB_USER_POOL_NAME }}"
           jwt_secret = "${{ secrets.BMB_JWT_SECRET_KEY }}"
+          jwt_issuer = "${{ vars.BMB_JWT_ISSUER }}"
+          jwt_audience = "${{ vars.BMB_JWT_AUDIENCE }}"
           EOF
 
       - name: Upload Configuration
@@ -157,7 +161,6 @@ jobs:
           workspace: ${{ env.TF_WORKSPACE }}
           directory: ${{ env.CONFIG_DIRECTORY }}
 
-
       - name: Create Apply Run
         uses: hashicorp/tfc-workflows-github/actions/create-run@v1.3.1
         id: apply-run
@@ -165,3 +168,10 @@ jobs:
           workspace: ${{ env.TF_WORKSPACE }}
           configuration_version: ${{ steps.apply-upload.outputs.configuration_version_id }}
           message: "Create Run from GitHub Actions CI ${{ github.sha }}"
+
+      - uses: hashicorp/tfc-workflows-github/actions/apply-run@v1.3.1
+        if: ${{ vars.TF_AUTO_APPROVE == 'true' }}
+        id: apply
+        with:
+          run: ${{ steps.apply-run.outputs.run_id }}
+          comment: "Confirmed from GitHub Actions CI ${{ github.sha }}"

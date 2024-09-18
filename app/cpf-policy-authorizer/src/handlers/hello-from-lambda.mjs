@@ -1,18 +1,5 @@
 import { generateAccessToken } from '../helpers/tokenService.js';
-import { getUser, getUserGroups, isAdmin } from '../helpers/cognitoService.js';
-
-/**
- * A Lambda function that returns a static string
- */
-export const helloFromLambdaHandler = async () => {
-    // If you change this message, you will need to change hello-from-lambda.test.mjs
-    const message = 'Hello from Lambda!';
-
-    // All log statements are written to CloudWatch
-    console.info(`${message}`);
-
-    return message;
-}
+import { getUser, getUserGroups } from '../helpers/cognitoService.js';
 
 // https://stackoverflow.com/questions/40585016/is-it-possible-to-add-an-http-header-from-aws-custom-auth-on-api-gateway
 // https://stackoverflow.com/questions/68959135/read-jwt-token-from-different-http-header-in-asp-net-core
@@ -22,18 +9,18 @@ export const handler = async (event, context, callback) => {
 
     if (identityProvided) {
         const user = await getUser(cpf);
-        let payload = {
-            cpf
-        };
 
         if (user) {
-            payload = { ...payload, ...user }
             let userGroups = await getUserGroups(cpf);
-            let hasAdminRole = isAdmin(userGroups);
-            payload["role"] = userGroups;
+            let jwtPayload = {
+                cpf,
+                ...payload,
+                ...user,
+                role: userGroups
+            }
 
-            let token = generateAccessToken(payload);
-            let policy = generateAuthPolicy(cpf, event.routeArn, hasAdminRole, token);
+            let token = generateAccessToken(jwtPayload);
+            let policy = generateAuthPolicy(cpf, event.routeArn, token);
             console.log(token);
 
             return policy;
@@ -48,7 +35,7 @@ export const handler = async (event, context, callback) => {
     }
 };
 
-const generateAuthPolicy = (principalId, routeArn, isAdmin, accessToken) => {
+const generateAuthPolicy = (principalId, routeArn, accessToken) => {
     try {
 
         console.log('Method ARN: ' + routeArn);
@@ -62,25 +49,13 @@ const generateAuthPolicy = (principalId, routeArn, isAdmin, accessToken) => {
             stage: apiGatewayArnTmp[1],
         };
 
-        var method = apiGatewayArnTmp[2];
         var resource = '/'; // root resource
         if (apiGatewayArnTmp[3]) {
             resource += apiGatewayArnTmp.slice(3, apiGatewayArnTmp.length).join('/');
         }
 
         var policy = new AuthPolicy(principalId, awsAccountId, apiOptions);
-        // if (isAdmin) {
-        console.log("ALLOW")
         policy.allowAllMethods();
-        // }
-        // else {
-        //     console.log("DENY")
-        //     policy.denyAllMethods();
-        // }
-
-        // policy.allowMethod(AuthPolicy.HttpVerb.GET, "/users/username");
-
-        // finally, build the policy
         var authResponse = policy.build();
 
         authResponse.context = {
@@ -418,3 +393,16 @@ AuthPolicy.prototype = (function () {
     };
 
 })();
+
+/**
+ * A Lambda function that returns a static string
+ */
+export const helloFromLambdaHandler = async () => {
+    // If you change this message, you will need to change hello-from-lambda.test.mjs
+    const message = 'Hello from Lambda!';
+
+    // All log statements are written to CloudWatch
+    console.info(`${message}`);
+
+    return message;
+}

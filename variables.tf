@@ -34,7 +34,17 @@ variable "user_pool_name" {
 }
 
 variable "jwt_secret" {
-  type = string
+  type      = string
   sensitive = true
-  default = "PkOhRwy6UtniEMo7lLWp3bADctYgnDHCTvH+2YkDeGg="
+  default   = "PkOhRwy6UtniEMo7lLWp3bADctYgnDHCTvH+2YkDeGg="
+}
+
+variable "jwt_audience" {
+  type    = string
+  default = "https://localhost:7001"
+}
+
+variable "jwt_issuer" {
+  type    = string
+  default = "https://localhost:7001"
 }
