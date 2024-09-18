@@ -70,12 +70,6 @@ jobs:
         working-directory: app/cpf-policy-authorizer
         run: npm install
 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: lambda-plan
-          path: files/lambda.zip
-
       - name: Create .auto.tfvars file
         run: |
           cat <<EOF > auth.auto.tfvars
@@ -180,12 +174,6 @@ jobs:
         working-directory: app/cpf-policy-authorizer
         run: npm install
 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: lambda
-          path: files/lambda.zip
-
       - name: Upload Configuration
         uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.3.1
         id: apply-upload
@@ -207,3 +195,9 @@ jobs:
         with:
           run: ${{ steps.apply-run.outputs.run_id }}
           comment: "Confirmed from GitHub Actions CI ${{ github.sha }}"
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lambda
+          path: files/lambda.zip
