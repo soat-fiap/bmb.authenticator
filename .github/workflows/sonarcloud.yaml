@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   sonarcloud:
-    if: github.event_name != 'pull_request' || github.ref == 'refs/heads/main'
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
     name: SonarCloud
     runs-on: ubuntu-latest
     steps:
