@@ -105,7 +105,7 @@ module "api_gateway" {
     #   authorizer_id     = aws_apigatewayv2_authorizer.external.id
     #   integration = {
     #     type   = "HTTP_PROXY"
-    #     uri    = "https://webhook.site/b47f1159-1979-4007-9e64-516dab1933f8"
+    #     uri    = "https://webhook.site/dbdc804b-e585-4ee0-a8d0-53abe97605f5"
     #     method = "ANY"
     #     response_parameters = [
     #       {
@@ -177,7 +177,7 @@ module "api_gateway_security_group" {
   version = "~> 5.1.2"
 
   name        = "bmb-vpclink-sg"
-  description = "API Gateway group for example usage"
+  description = "API Gateway security group"
   vpc_id      = var.vpc_id
 
   ingress_cidr_blocks = ["0.0.0.0/0"]
