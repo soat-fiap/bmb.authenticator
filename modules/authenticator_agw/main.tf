@@ -36,7 +36,8 @@ module "api_gateway" {
         }
         integration = {
           error             = "$context.integration.error"
-          integrationStatus = "$context.integration.integrationStatus"
+          integrationStatus = "$context.integration.integrationStatus",
+          accessToken       = "$context.authorizer.accessToken",
         }
       }
     })
@@ -44,17 +45,105 @@ module "api_gateway" {
 
   create_domain_name = false
 
+  authorizers = {
+    "cpf-auth" = {
+      authorizer_type  = "REQUEST"
+      identity_sources = ["$request.header.Authorization"]
+      name             = "cpf-auth"
+
+      # authorizer_credentials_arn
+      authorizer_payload_format_version = "2.0"
+      enable_simple_responses           = false
+      authorizer_uri                    = var.authenticator_lambda_arn
+    }
+  }
+
   # Routes & Integration(s)
   routes = {
-    "ANY /internal-alb/{proxy+}" = {
+    # "ANY /doc/{proxy+}" = {
+    #   integration = {
+    #     connection_type = "VPC_LINK"
+    #     type            = "HTTP_PROXY"
+    #     uri             = var.nlb_listener_arn
+    #     method          = "ANY"
+    #     vpc_link_key    = "bmb-vpc"
+
+    #     request_parameters = {
+    #       "overwrite:path" = "swagger"
+    #     }
+    #   }
+    # }
+
+    "ANY /{proxy+}" = {
+      authorization_type = "CUSTOM"
+      authorizer_id      = aws_apigatewayv2_authorizer.external.id
       integration = {
         connection_type = "VPC_LINK"
         type            = "HTTP_PROXY"
         uri             = var.nlb_listener_arn
         method          = "ANY"
         vpc_link_key    = "bmb-vpc"
+
+        # authorizer_id = aws_apigatewayv2_authorizer.external.id
+        response_parameters = [
+          {
+            status_code = 200
+            mappings = {
+              "append:header.accessToken" = "$context.authorizer.accessToken"
+            }
+          }
+        ]
+
+        request_parameters = {
+          "append:header.accessToken" = "$context.authorizer.accessToken"
+        }
       }
     }
+
+    # "ANY /api/{proxy+}" = {
+    #   authorization_type = "CUSTOM"
+    #   authorizer_id     = aws_apigatewayv2_authorizer.external.id
+    #   integration = {
+    #     type   = "HTTP_PROXY"
+    #     uri    = "https://webhook.site/b47f1159-1979-4007-9e64-516dab1933f8"
+    #     method = "ANY"
+    #     response_parameters = [
+    #       {
+    #         status_code = 200
+    #         mappings = {
+    #           "append:header.accessToken" = "$context.authorizer.accessToken"
+    #         }
+    #       }
+    #     ]
+
+    #     request_parameters = {
+    #       "append:header.accessToken" = "$context.authorizer.accessToken"
+    #     }
+    #   }
+    # }
+
+    # "GET /swagger/{proxy+}" = {
+    #   authorization_type = "CUSTOM"
+    #   authorizer_id      = aws_apigatewayv2_authorizer.external.id
+    #   integration = {
+    #     type   = "HTTP_PROXY"
+    #     uri    = "https://webhook.site/465cc12d-b806-4323-a2e2-44403e711e42"
+    #     method = "ANY"
+
+    #     response_parameters = [
+    #       {
+    #         status_code = 200
+    #         mappings = {
+    #           "append:header.accessToken" = "$context.authorizer.accessToken"
+    #         }
+    #       }
+    #     ]
+
+    #     request_parameters = {
+    #       "append:header.accessToken" = "$context.authorizer.accessToken"
+    #     }
+    #   }
+    # }
   }
 
   # VPC Link
@@ -67,9 +156,20 @@ module "api_gateway" {
   }
 
   tags = {
-    Created   = timestamp()
     Terraform = "true"
   }
+}
+
+resource "random_uuid" "lambda_permission_statement" {
+
+}
+
+resource "aws_lambda_permission" "lambda_agw_invoke_permission" {
+  action        = "lambda:InvokeFunction"
+  statement_id  = random_uuid.lambda_permission_statement.result
+  function_name = var.authenticator_lambda_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${module.api_gateway.api_execution_arn}/authorizers/${aws_apigatewayv2_authorizer.external.id}"
 }
 
 module "api_gateway_security_group" {
@@ -81,12 +181,21 @@ module "api_gateway_security_group" {
   vpc_id      = var.vpc_id
 
   ingress_cidr_blocks = ["0.0.0.0/0"]
-  ingress_rules       = ["http-80-tcp"]
+  ingress_rules       = ["all-all"]
 
   egress_rules = ["all-all"]
 
   tags = {
     Terraform = "true"
-    Created   = timestamp()
   }
+}
+
+resource "aws_apigatewayv2_authorizer" "external" {
+  api_id                            = module.api_gateway.api_id
+  authorizer_type                   = "REQUEST"
+  name                              = "cpf_authorizer"
+  authorizer_payload_format_version = "2.0"
+  authorizer_result_ttl_in_seconds  = 0
+  enable_simple_responses           = false
+  authorizer_uri                    = var.authenticator_lambda_arn
 }
