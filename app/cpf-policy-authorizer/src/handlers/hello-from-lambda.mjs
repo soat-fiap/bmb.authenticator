@@ -15,7 +15,6 @@ export const handler = async (event, context, callback) => {
             let userGroups = await getUserGroups(cpf);
             let jwtPayload = {
                 cpf,
-                ...payload,
                 ...user,
                 role: userGroups
             }
