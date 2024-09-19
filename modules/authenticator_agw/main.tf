@@ -122,26 +122,11 @@ module "api_gateway" {
     #   }
     # }
 
-    # "GET /swagger/{proxy+}" = {
-    #   authorization_type = "CUSTOM"
-    #   authorizer_id      = aws_apigatewayv2_authorizer.external.id
+    # "ANY /swagger/{proxy+}" = {
     #   integration = {
     #     type   = "HTTP_PROXY"
-    #     uri    = "https://webhook.site/465cc12d-b806-4323-a2e2-44403e711e42"
+    #     uri    = "https://swagger.io/"
     #     method = "ANY"
-
-    #     response_parameters = [
-    #       {
-    #         status_code = 200
-    #         mappings = {
-    #           "append:header.accessToken" = "$context.authorizer.accessToken"
-    #         }
-    #       }
-    #     ]
-
-    #     request_parameters = {
-    #       "append:header.accessToken" = "$context.authorizer.accessToken"
-    #     }
     #   }
     # }
   }
@@ -195,7 +180,7 @@ resource "aws_apigatewayv2_authorizer" "external" {
   authorizer_type                   = "REQUEST"
   name                              = "cpf_authorizer"
   authorizer_payload_format_version = "2.0"
-  authorizer_result_ttl_in_seconds  = 0
+  authorizer_result_ttl_in_seconds  = 60
   enable_simple_responses           = false
   authorizer_uri                    = var.authenticator_lambda_arn
 }
