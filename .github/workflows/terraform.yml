@@ -59,6 +59,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        
+      - name: Config node
+        id: install-packages
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        working-directory: app/cpf-policy-authorizer
+        run: npm install
 
       - name: Create .auto.tfvars file
         run: |
@@ -154,6 +164,16 @@ jobs:
           jwt_audience = "${{ vars.BMB_JWT_AUDIENCE }}"
           EOF
 
+      - name: Config node
+        id: install-packages
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        working-directory: app/cpf-policy-authorizer
+        run: npm install
+
       - name: Upload Configuration
         uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.3.1
         id: apply-upload
@@ -175,3 +195,9 @@ jobs:
         with:
           run: ${{ steps.apply-run.outputs.run_id }}
           comment: "Confirmed from GitHub Actions CI ${{ github.sha }}"
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lambda
+          path: files/lambda.zip

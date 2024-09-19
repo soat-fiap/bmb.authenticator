@@ -1,12 +1,3 @@
-terraform {
-  # backend "remote" {
-  #   organization = "FiapPostech-SOAT"
-  #   workspaces {
-  #     name = "bmb-authenticator"
-  #   }
-  # }
-}
-
 data "aws_vpc" "bmb_vpc" {
   filter {
     name   = "tag:Name"
@@ -56,7 +47,7 @@ data "archive_file" "lambda_zip" {
   type             = "zip"
   source_dir       = "${path.module}/app/cpf-policy-authorizer"
   output_file_mode = "0666"
-  output_path      = "${path.module}/files/lambda-my-function3.zip"
+  output_path      = "${path.module}/files/lambda.zip"
 }
 
 module "authenticator_lambda_function" {
