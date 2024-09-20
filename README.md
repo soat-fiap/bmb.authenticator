@@ -5,6 +5,10 @@
 
 This project sets up an API Gateway that acts as a proxy, using a Lambda authorizer to authenticate requests for internal resources. The API Gateway routes incoming requests to the appropriate backend services, ensuring that only authenticated requests are processed.
 
+## Dependencies
+- [VPC](https://github.com/soat-fiap/bmb.infra)    
+- [NLB (Network Load Balancer)](https://github.com/soat-fiap/FIAP.TechChallenge.ByteMeBurger)
+
 ## Features
 
 - **API Gateway Proxy**: Acts as a proxy to route requests to backend services.
@@ -35,3 +39,7 @@ After running `terraform apply`, the following outputs will be provided:
 
 - **api_gateway_url**: The URL of the deployed API Gateway.
 - **lambda_authorizer_arn**: The ARN of the deployed Lambda authorizer function.
+
+## This repo on the infrastructure
+
+![Architecture Diagram](aws-infra-phase-3.png)
