@@ -1,6 +1,5 @@
 export const generateAuthPolicy = (principalId, routeArn, accessToken) => {
     try {
-
         console.log('Method ARN: ' + routeArn);
 
         let tmp = routeArn.split(':');
@@ -22,7 +21,8 @@ export const generateAuthPolicy = (principalId, routeArn, accessToken) => {
         let authResponse = policy.build();
 
         authResponse.context = {
-            accessToken: accessToken
+            accessToken: accessToken,
+            cacheKey: principalId
         };
         return authResponse;
     }

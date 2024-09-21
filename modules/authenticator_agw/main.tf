@@ -181,6 +181,7 @@ resource "aws_apigatewayv2_authorizer" "external" {
   name                              = "cpf_authorizer"
   authorizer_payload_format_version = "2.0"
   authorizer_result_ttl_in_seconds  = 60
+  identity_sources                  = ["$context.authorizer.cacheKey"]
   enable_simple_responses           = false
   authorizer_uri                    = var.authenticator_lambda_arn
 }

@@ -31,6 +31,10 @@ export const handler = async (event, context, callback) => {
         let token = generateAccessToken({
             role: ["user"]
         });
-        return generateAuthPolicy("anom", event.routeArn, true, token);
+        return generateAuthPolicy(generateUniqueRandomValue(), event.routeArn, true, token);
     }
+};
+
+export const generateUniqueRandomValue = () => {
+    return Math.random().toString(36).substr(2, 9);
 };
