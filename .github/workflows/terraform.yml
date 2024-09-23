@@ -207,6 +207,7 @@ jobs:
   destroy-plan:
     name: "Create terraform destroy plan"
     needs: [deploy]
+    environment: dev
     runs-on: ubuntu-latest
       
     steps:
