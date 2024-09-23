@@ -30,7 +30,7 @@ export const handler = async (event, context, callback) => {
         }
     } else {
         let token = generateAccessToken({
-            role: ["user"]
+            role: ["customer"]
         });
         return generateAuthPolicy(uuidv4(), event.routeArn, true, token);
     }
