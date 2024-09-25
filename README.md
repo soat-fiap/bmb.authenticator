@@ -1,4 +1,4 @@
-# bmb.authenticator
+# bmb.authenticator (DEMO)
 [![Terraform](https://github.com/soat-fiap/bmb.authenticator/actions/workflows/terraform.yml/badge.svg?branch=main)](https://github.com/soat-fiap/bmb.authenticator/actions/workflows/terraform.yml)
 
 # API Gateway Proxy with Lambda Authorizer
