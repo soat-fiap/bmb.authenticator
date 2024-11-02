@@ -6,7 +6,11 @@ variable "vpc_link_subnets" {
   type = list(string)
 }
 
-variable "nlb_listener_arn" {
+variable "payment_nlb_listener_arn" {
+  type = string
+}
+
+variable "kitchen_nlb_listener_arn" {
   type = string
 }
 

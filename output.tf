@@ -30,6 +30,15 @@ output "api" {
 #   value = data.aws_lb_listener.nlb_listener.arn
 # }
 
+output "payment_elb" {
+  value = data.aws_lb.eks_payment_elb
+}
+
+output "kitchen_elb" {
+  value = data.aws_lb.eks_kitchen_elb
+}
+
+
 output "path" {
   value = "${path.cwd}/${data.archive_file.lambda_zip.id}"
 }

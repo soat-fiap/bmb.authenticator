@@ -7,7 +7,7 @@ variable "api_name" {
 variable "vpc_name" {
   description = "VPC Name"
   type        = string
-  default     = "eks-fiap-vpc"
+  default     = "postech-fiap-vpc"
 }
 
 variable "profile" {

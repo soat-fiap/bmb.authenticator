@@ -27,14 +27,27 @@ data "aws_subnets" "private_subnets" {
   }
 }
 
-data "aws_lb" "eks_internal_elb" {
+data "aws_lb" "eks_payment_elb" {
   tags = {
-    "kubernetes.io/service-name" = "default/${var.nlb_name}"
+    "kubernetes.io/service-name" = "fiap-payment/api-internal-elb"
   }
 }
 
-data "aws_lb_listener" "nlb_listener" {
-  load_balancer_arn = data.aws_lb.eks_internal_elb.arn
+data "aws_lb" "eks_kitchen_elb" {
+  tags = {
+    "kubernetes.io/service-name" = "fiap-production/kitchen-api-internal-elb"
+  }
+}
+
+
+data "aws_lb_listener" "payment_nlb_listener" {
+  load_balancer_arn = data.aws_lb.eks_payment_elb.arn
+  port              = 80
+}
+
+
+data "aws_lb_listener" "kitchen_nlb_listener" {
+  load_balancer_arn = data.aws_lb.eks_kitchen_elb.arn
   port              = 80
 }
 
@@ -99,7 +112,8 @@ module "authenticator_api" {
 
   api_name         = var.api_name
   vpc_id           = data.aws_vpc.bmb_vpc.id
-  nlb_listener_arn = data.aws_lb_listener.nlb_listener.arn
+  payment_nlb_listener_arn = data.aws_lb_listener.payment_nlb_listener.arn
+  kitchen_nlb_listener_arn = data.aws_lb_listener.kitchen_nlb_listener.arn
   vpc_link_subnets = data.aws_subnets.private_subnets.ids
   # vpc_id                    = "dataaws_vpc.bmb_vpc.id"
   # nlb_listener_arn          = "dataaws_lb_listener.nlb_listener.arn"
