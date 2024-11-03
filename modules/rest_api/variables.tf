@@ -1,3 +1,15 @@
+variable "vpc_id" {
+  type = string
+}
+
+variable "authenticator_lambda_arn" {
+  type = string
+}
+
+variable "authenticator_lambda_name" {
+  type = string
+}
+
 variable "api_name" {
   description = "API Name"
   type        = string
@@ -7,7 +19,7 @@ variable "api_name" {
 variable "vpc_name" {
   description = "VPC Name"
   type        = string
-  default     = "postech-fiap-vpc"
+  default     = "eks-fiap-vpc"
 }
 
 variable "profile" {
@@ -25,29 +37,13 @@ variable "region" {
 variable "user_pool_name" {
   type        = string
   description = "Cognito user pool name"
-  default     = "bmb-users-pool-local"
+  default     = "bmb_users_pool"
 }
 
-variable "jwt_secret" {
-  type      = string
-  sensitive = true
-  default   = "PkOhRwy6UtniEMo7lLWp3bADctYgnDHCTvH+2YkDeGg="
-}
-
-variable "jwt_audience" {
-  type    = string
-  default = "https://localhost:7001"
-}
-
-variable "jwt_issuer" {
-  type    = string
-  default = "https://localhost:7001"
-}
-
-variable "services" {
+variable "elb_map" {
   type = map(string)
   default = {
-    "payment" = "fiap-payment/api-internal-elb",
-    "kitchen" = "fiap-production/kitchen-api-internal-elb"
+    "payment2" = "local.domain.com",
+    "kitchen2" = "local.domain.com"
   }
 }
