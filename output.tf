@@ -45,3 +45,7 @@
 # output "file" {
 #   value = data.archive_file.lambda_zip
 # }
+
+output "load_balancer_map" {
+  value = local.elb_map_x
+}

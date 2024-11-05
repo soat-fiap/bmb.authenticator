@@ -27,22 +27,29 @@
 #   }
 # }
 
-# data "aws_lb" "eks_payment_elb" {
-#   tags = {
-#     "kubernetes.io/service-name" = "fiap-payment/api-internal-elb"
-#   }
-# }
+data "aws_lb" "eks_payment_elb" {
+  tags = {
+    "kubernetes.io/service-name" = "fiap-payment/api-internal"
+  }
+}
 
-# data "aws_lb" "eks_kitchen_elb" {
-#   tags = {
-#     "kubernetes.io/service-name" = "fiap-production/kitchen-api-internal-elb"
-#   }
-# }
+data "aws_lb" "eks_kitchen_elb" {
+  tags = {
+    "kubernetes.io/service-name" = "fiap-production/api-internal"
+  }
+}
+
+data "aws_lb" "load_balancers" {
+  for_each = var.services
+  tags = {
+    "kubernetes.io/service-name" = "${each.value.namespace}/api-internal"
+  }
+}
 
 # data "aws_lb" "service_elbs" {
 #   for_each = var.services
 #   tags = {
-#     "kubernetes.io/service-name" = "${each.value}"
+#     "kubernetes.io/service-name" = "${each.value}/api-internal"
 #   }
 # }
 
@@ -59,13 +66,13 @@
 # }
 
 
-# data "aws_cognito_user_pools" "bmb_selected_user_pool" {
-#   name = var.user_pool_name
-# }
+data "aws_cognito_user_pools" "bmb_selected_user_pool" {
+  name = var.user_pool_name
+}
 
-# data "archive_file" "lambda_zip" {
-#   type             = "zip"
-#   source_dir       = "${path.module}/app/cpf-policy-authorizer"
-#   output_file_mode = "0666"
-#   output_path      = "${path.module}/files/lambda.zip"
-# }
+data "archive_file" "lambda_zip" {
+  type             = "zip"
+  source_dir       = "${path.module}/app/cpf-policy-authorizer"
+  output_file_mode = "0666"
+  output_path      = "${path.module}/files/lambda.zip"
+}

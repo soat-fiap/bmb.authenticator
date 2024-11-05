@@ -45,9 +45,22 @@ variable "jwt_issuer" {
 }
 
 variable "services" {
-  type = map(string)
+   type = map(object({
+    namespace = string
+    auth     = bool
+  }))
   default = {
-    "payment" = "fiap-payment/api-internal-elb",
-    "kitchen" = "fiap-production/kitchen-api-internal-elb"
+    "payment" = {
+      namespace = "fiap-payment"
+      auth = false
+    }
+    "production" = {
+      namespace = "fiap-production"
+      auth = false
+    }
+    "log" = {
+      namespace = "fiap-log"
+      auth = false
+    }
   }
 }
