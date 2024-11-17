@@ -7,7 +7,7 @@ variable "api_name" {
 variable "vpc_name" {
   description = "VPC Name"
   type        = string
-  default     = "eks-fiap-vpc"
+  default     = "postech-fiap-vpc"
 }
 
 variable "profile" {
@@ -22,15 +22,10 @@ variable "region" {
   default     = "us-east-1"
 }
 
-variable "nlb_name" {
-  type    = string
-  default = "bmb-apgw-eks"
-}
-
 variable "user_pool_name" {
   type        = string
   description = "Cognito user pool name"
-  default     = "bmb-users-pool-local"
+  default     = "bmb-users-pool-dev"
 }
 
 variable "jwt_secret" {
@@ -41,10 +36,35 @@ variable "jwt_secret" {
 
 variable "jwt_audience" {
   type    = string
-  default = "https://localhost:7001"
+  default = "https://localhost:7000"
 }
 
 variable "jwt_issuer" {
   type    = string
-  default = "https://localhost:7001"
+  default = "https://localhost:7000"
+}
+
+variable "services" {
+   type = map(object({
+    namespace = string
+    auth      = bool
+  }))
+  default = {
+    "payment" = {
+      namespace = "fiap-payment"
+      auth      = true
+    }
+    "production" = {
+      namespace = "fiap-production"
+      auth      = true
+    }
+    "orders" = {
+      namespace = "fiap-orders"
+      auth      = true
+    }
+    # "log" = {
+    #   namespace = "fiap-log"
+    #   auth = false
+    # }
+  }
 }

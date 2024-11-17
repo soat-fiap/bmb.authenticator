@@ -21,7 +21,7 @@ export const handler = async (event, context, callback) => {
             }
 
             let token = generateAccessToken(jwtPayload);
-            let policy = generateAuthPolicy(cpf, event.routeArn, token);
+            let policy = generateAuthPolicy(cpf, event.methodArn, token);
             console.log(token);
 
             return policy;
@@ -32,6 +32,6 @@ export const handler = async (event, context, callback) => {
         let token = generateAccessToken({
             role: ["customer"]
         });
-        return generateAuthPolicy(uuidv4(), event.routeArn, token);
+        return generateAuthPolicy(uuidv4(), event.methodArn, token);
     }
 };

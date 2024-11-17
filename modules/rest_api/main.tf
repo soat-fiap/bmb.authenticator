@@ -1,0 +1,118 @@
+resource "aws_api_gateway_rest_api" "api_gtw" {
+  name        = var.api_name
+  description = "BMB REST API Gateway"
+  endpoint_configuration {
+    types = ["REGIONAL"]
+  }
+}
+
+resource "aws_api_gateway_resource" "resource" {
+  for_each    = var.elb_map
+  rest_api_id = aws_api_gateway_rest_api.api_gtw.id
+  parent_id   = aws_api_gateway_rest_api.api_gtw.root_resource_id
+  path_part   = each.key
+}
+
+resource "aws_api_gateway_resource" "proxy" {
+  for_each    = var.elb_map
+  rest_api_id = aws_api_gateway_rest_api.api_gtw.id
+  parent_id   = aws_api_gateway_resource.resource[each.key].id
+  path_part   = "{proxy+}"
+}
+
+//https://gist.github.com/mendhak/8303d60cbfe8c9bf1905def3ccdb2176
+resource "aws_api_gateway_method" "proxy_method" {
+  for_each    = var.elb_map
+  rest_api_id = aws_api_gateway_rest_api.api_gtw.id
+  resource_id = aws_api_gateway_resource.proxy[each.key].id
+  http_method = "ANY"
+
+  authorization = each.value.auth ? "CUSTOM" : "NONE"
+
+  authorizer_id = each.value.auth ? aws_api_gateway_authorizer.cpf_auth.id : null
+  request_parameters = {
+    "method.request.path.proxy" = true
+  }
+}
+
+resource "aws_api_gateway_integration" "integrations" {
+  for_each                = var.elb_map
+  rest_api_id             = aws_api_gateway_rest_api.api_gtw.id
+  resource_id             = aws_api_gateway_resource.proxy[each.key].id
+  http_method             = aws_api_gateway_method.proxy_method[each.key].http_method
+  type                    = "HTTP_PROXY"
+  uri                     = "http://${each.value.dns_name}/{proxy}"
+  integration_http_method = "ANY"
+  connection_type = "VPC_LINK"
+  connection_id   = aws_api_gateway_vpc_link.vpc_link[each.key].id
+
+  timeout_milliseconds = 29000
+  request_parameters = {
+    "integration.request.path.proxy" = "method.request.path.proxy"
+    "integration.request.header.accessToken" = "context.authorizer.accessToken"
+  }
+  
+}
+
+resource "aws_api_gateway_authorizer" "cpf_auth" {
+  rest_api_id                      = aws_api_gateway_rest_api.api_gtw.id
+  name                             = "cpf_authorizer"
+  type                             = "REQUEST"
+  authorizer_uri                   = var.authenticator_lambda_arn
+  identity_source                  = "method.request.header.cpf"
+  authorizer_result_ttl_in_seconds = 10
+}
+
+resource "aws_api_gateway_vpc_link" "vpc_link" {
+  for_each    = var.elb_map
+  name        = "${each.key}-vpc_link"
+  target_arns = [each.value.elb_arn]
+}
+
+resource "aws_api_gateway_deployment" "dev" {
+  depends_on  = [aws_api_gateway_integration.integrations]
+  rest_api_id = aws_api_gateway_rest_api.api_gtw.id
+  stage_name  = "dev"
+  description = sha1(jsonencode(aws_api_gateway_rest_api.api_gtw.body))
+  lifecycle {
+    create_before_destroy = true
+  }
+   triggers = {
+    redeployment = sha1(jsonencode(aws_api_gateway_rest_api.api_gtw.body))
+  }
+}
+
+resource "aws_api_gateway_stage" "dev" {
+  count         = 0
+  rest_api_id   = aws_api_gateway_rest_api.api_gtw.id
+  stage_name    = aws_api_gateway_deployment.dev.stage_name
+  deployment_id = aws_api_gateway_deployment.dev.id
+
+  access_log_settings {
+    destination_arn = aws_cloudwatch_log_group.api_gw_logs.arn
+    format = jsonencode({
+      requestId      = "$context.requestId"
+      ip             = "$context.identity.sourceIp"
+      caller         = "$context.identity.caller"
+      user           = "$context.identity.user"
+      requestTime    = "$context.requestTime"
+      httpMethod     = "$context.httpMethod"
+      resourcePath   = "$context.resourcePath"
+      status         = "$context.status"
+      protocol       = "$context.protocol"
+      responseLength = "$context.responseLength"
+    })
+  }
+}
+
+resource "aws_cloudwatch_log_group" "api_gw_logs" {
+  name              = "/aws/api-gateway/${var.api_name}"
+  retention_in_days = 1
+}
+
+resource "aws_lambda_permission" "lambda_agw_invoke_permission" {
+  action        = "lambda:InvokeFunction"
+  function_name = var.authenticator_lambda_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.api_gtw.execution_arn}/*/*"
+}

@@ -1,55 +1,3 @@
-data "aws_vpc" "bmb_vpc" {
-  filter {
-    name   = "tag:Name"
-    values = [var.vpc_name]
-  }
-
-  filter {
-    name   = "tag:Terraform"
-    values = ["true"]
-  }
-}
-
-data "aws_subnets" "private_subnets" {
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.bmb_vpc.id]
-  }
-
-  filter {
-    name   = "tag:Terraform"
-    values = ["true"]
-  }
-
-  filter {
-    name   = "tag:kubernetes.io/role/internal-elb"
-    values = ["1"]
-  }
-}
-
-data "aws_lb" "eks_internal_elb" {
-  tags = {
-    "kubernetes.io/service-name" = "default/${var.nlb_name}"
-  }
-}
-
-data "aws_lb_listener" "nlb_listener" {
-  load_balancer_arn = data.aws_lb.eks_internal_elb.arn
-  port              = 80
-}
-
-
-data "aws_cognito_user_pools" "bmb_selected_user_pool" {
-  name = var.user_pool_name
-}
-
-data "archive_file" "lambda_zip" {
-  type             = "zip"
-  source_dir       = "${path.module}/app/cpf-policy-authorizer"
-  output_file_mode = "0666"
-  output_path      = "${path.module}/files/lambda.zip"
-}
-
 module "authenticator_lambda_function" {
   source  = "terraform-aws-modules/lambda/aws"
   version = "~> 7.7.1"
@@ -94,18 +42,49 @@ module "authenticator_lambda_function" {
   }
 }
 
-module "authenticator_api" {
-  source = "./modules/authenticator_agw"
+# module "authenticator_api" {
+#   source = "./modules/authenticator_agw"
 
-  api_name         = var.api_name
-  vpc_id           = data.aws_vpc.bmb_vpc.id
-  nlb_listener_arn = data.aws_lb_listener.nlb_listener.arn
-  vpc_link_subnets = data.aws_subnets.private_subnets.ids
-  # vpc_id                    = "dataaws_vpc.bmb_vpc.id"
-  # nlb_listener_arn          = "dataaws_lb_listener.nlb_listener.arn"
-  # vpc_link_subnets          = ["dataaws_subnets.private_subnets.ids"]
+#   api_name                 = var.api_name
+#   vpc_id                   = data.aws_vpc.bmb_vpc.id
+#   payment_nlb_listener_arn = data.aws_lb.eks_kitchen_elb.arn
+#   kitchen_nlb_listener_arn = data.aws_lb_listener.kitchen_nlb_listener.arn
+#   kitchen_elb_name         = data.aws_lb.eks_kitchen_elb.dns_name
+#   vpc_link_subnets         = data.aws_subnets.private_subnets.ids
+#   # vpc_id                    = "dataaws_vpc.bmb_vpc.id"
+#   # nlb_listener_arn          = "dataaws_lb_listener.nlb_listener.arn"
+#   # vpc_link_subnets          = ["dataaws_subnets.private_subnets.ids"]
+#   profile                   = var.profile
+#   region                    = var.region
+#   authenticator_lambda_arn  = module.authenticator_lambda_function.lambda_function_invoke_arn
+#   authenticator_lambda_name = module.authenticator_lambda_function.lambda_function_name
+# }
+
+locals {
+  mock_elb_dns = {
+    for key, value in var.services : key => {
+      dns_name : "example.com"
+      auth = true
+    }
+  }
+
+  elb_map = {
+    for key, value in var.services : key => {
+      dns_name = data.aws_lb.load_balancers[key].dns_name
+      auth     = value.auth
+      elb_arn  = data.aws_lb.load_balancers[key].arn
+    }
+  }
+}
+
+
+module "rest_api" {
+  source                    = "./modules/rest_api"
+  api_name                  = var.api_name
+  vpc_id                    = ".aws_vpc.bmb_vpc.id"
   profile                   = var.profile
   region                    = var.region
+  elb_map                   = local.elb_map
   authenticator_lambda_arn  = module.authenticator_lambda_function.lambda_function_invoke_arn
   authenticator_lambda_name = module.authenticator_lambda_function.lambda_function_name
 }
