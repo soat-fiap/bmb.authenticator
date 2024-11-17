@@ -80,7 +80,7 @@ module "api_gateway" {
       integration = {
         connection_type = "VPC_LINK"
         type            = "HTTP_PROXY"
-        uri             = var.payment_nlb_listener_arn
+        uri             = var.nlb_listener_arn
         method          = "ANY"
         vpc_link_key    = "bmb-vpc"
 
@@ -99,32 +99,6 @@ module "api_gateway" {
         }
       }
     }
-
-    # "ANY /payment/{proxy+}" = {
-    #   authorization_type = "CUSTOM"
-    #   authorizer_id      = aws_apigatewayv2_authorizer.external.id
-    #   integration = {
-    #     connection_type = "VPC_LINK"
-    #     type            = "HTTP_PROXY"
-    #     uri             = var.payment_nlb_listener_arn
-    #     method          = "ANY"
-    #     vpc_link_key    = "bmb-vpc"
-
-    #     # authorizer_id = aws_apigatewayv2_authorizer.external.id
-    #     response_parameters = [
-    #       {
-    #         status_code = 200
-    #         mappings = {
-    #           "append:header.accessToken" = "$context.authorizer.accessToken"
-    #         }
-    #       }
-    #     ]
-
-    #     request_parameters = {
-    #       "append:header.accessToken" = "$context.authorizer.accessToken"
-    #     }
-    #   }
-    # }
 
     # "ANY /api/{proxy+}" = {
     #   authorization_type = "CUSTOM"
@@ -208,6 +182,6 @@ resource "aws_apigatewayv2_authorizer" "external" {
   authorizer_payload_format_version = "2.0"
   authorizer_result_ttl_in_seconds  = 0
   # identity_sources                  = ["$context.authorizer.cacheKey"]
-  enable_simple_responses = false
-  authorizer_uri          = var.authenticator_lambda_arn
+  enable_simple_responses           = false
+  authorizer_uri                    = var.authenticator_lambda_arn
 }
