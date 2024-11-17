@@ -41,15 +41,6 @@ variable "user_pool_name" {
 }
 
 variable "elb_map" {
-  type = map(string)
-  default = {
-    "payment" = "local.domain.com",
-    "kitchen" = "local.domain.com"
-    "log"     = "local.domain.com"
-  }
-}
-
-variable "elb_map_x" {
   type = map(object({
     dns_name = string
     auth     = bool
@@ -60,6 +51,11 @@ variable "elb_map_x" {
       dns_name = "local.domain.com"
       auth     = true
       elb_arn  = "arn:aws:elasticloadbalancing:us-east-1::loadbalancer/app/eks-payment-elb/1234567890123456"
+    }
+    general = {
+      dns_name = "local.domain.com"
+      auth     = true
+      elb_arn  = "arn:aws:elasticloadbalancing:us-east-1::loadbalancer/app/eks-orders-elb/1234567890123456"
     }
     kitchen = {
       dns_name = "local.domain.com"

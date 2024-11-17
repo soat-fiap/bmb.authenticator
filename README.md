@@ -42,4 +42,4 @@ After running `terraform apply`, the following outputs will be provided:
 
 ## This repo on the infrastructure
 
-![Architecture Diagram](aws-infra-phase-3.png)
+![Architecture Diagram](aws-infra-phase-4.png)

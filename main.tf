@@ -67,12 +67,8 @@ locals {
       auth = true
     }
   }
+
   elb_map = {
-    # for key, value in var.services : key => data.aws_lb.service_elbs[each.key].dns_name
-    for key, value in var.services : key => local.mock_elb_dns[key].dns_name
-  }
-  elb_map_x = {
-    # for key, value in var.services : key => data.aws_lb.service_elbs[each.key].dns_name
     for key, value in var.services : key => {
       dns_name = data.aws_lb.load_balancers[key].dns_name
       auth     = value.auth
@@ -88,7 +84,7 @@ module "rest_api" {
   vpc_id                    = ".aws_vpc.bmb_vpc.id"
   profile                   = var.profile
   region                    = var.region
-  elb_map_x                 = local.elb_map_x
+  elb_map                   = local.elb_map
   authenticator_lambda_arn  = module.authenticator_lambda_function.lambda_function_invoke_arn
   authenticator_lambda_name = module.authenticator_lambda_function.lambda_function_name
 }

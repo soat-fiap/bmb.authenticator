@@ -47,5 +47,5 @@
 # }
 
 output "load_balancer_map" {
-  value = local.elb_map_x
+  value = local.elb_map
 }

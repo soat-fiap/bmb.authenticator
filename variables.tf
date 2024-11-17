@@ -25,7 +25,7 @@ variable "region" {
 variable "user_pool_name" {
   type        = string
   description = "Cognito user pool name"
-  default     = "bmb-users-pool-local"
+  default     = "bmb-users-pool-dev"
 }
 
 variable "jwt_secret" {
@@ -36,31 +36,35 @@ variable "jwt_secret" {
 
 variable "jwt_audience" {
   type    = string
-  default = "https://localhost:7001"
+  default = "https://localhost:7000"
 }
 
 variable "jwt_issuer" {
   type    = string
-  default = "https://localhost:7001"
+  default = "https://localhost:7000"
 }
 
 variable "services" {
    type = map(object({
     namespace = string
-    auth     = bool
+    auth      = bool
   }))
   default = {
     "payment" = {
       namespace = "fiap-payment"
-      auth = false
+      auth      = true
     }
     "production" = {
       namespace = "fiap-production"
-      auth = false
+      auth      = true
     }
-    "log" = {
-      namespace = "fiap-log"
-      auth = false
+    "orders" = {
+      namespace = "fiap-orders"
+      auth      = true
     }
+    # "log" = {
+    #   namespace = "fiap-log"
+    #   auth = false
+    # }
   }
 }
