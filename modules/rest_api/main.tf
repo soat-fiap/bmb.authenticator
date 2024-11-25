@@ -43,15 +43,15 @@ resource "aws_api_gateway_integration" "integrations" {
   type                    = "HTTP_PROXY"
   uri                     = "http://${each.value.dns_name}/{proxy}"
   integration_http_method = "ANY"
-  connection_type = "VPC_LINK"
-  connection_id   = aws_api_gateway_vpc_link.vpc_link[each.key].id
+  connection_type         = "VPC_LINK"
+  connection_id           = aws_api_gateway_vpc_link.vpc_link[each.key].id
 
   timeout_milliseconds = 29000
   request_parameters = {
-    "integration.request.path.proxy" = "method.request.path.proxy"
+    "integration.request.path.proxy"         = "method.request.path.proxy"
     "integration.request.header.accessToken" = "context.authorizer.accessToken"
   }
-  
+
 }
 
 resource "aws_api_gateway_authorizer" "cpf_auth" {
@@ -72,20 +72,20 @@ resource "aws_api_gateway_vpc_link" "vpc_link" {
 resource "aws_api_gateway_deployment" "dev" {
   depends_on  = [aws_api_gateway_integration.integrations]
   rest_api_id = aws_api_gateway_rest_api.api_gtw.id
-  stage_name  = "dev"
+  # stage_name  = "dev"
   description = sha1(jsonencode(aws_api_gateway_rest_api.api_gtw.body))
   lifecycle {
     create_before_destroy = true
   }
-   triggers = {
+  triggers = {
     redeployment = sha1(jsonencode(aws_api_gateway_rest_api.api_gtw.body))
   }
 }
 
 resource "aws_api_gateway_stage" "dev" {
-  count         = 0
+  # count         = 0
   rest_api_id   = aws_api_gateway_rest_api.api_gtw.id
-  stage_name    = aws_api_gateway_deployment.dev.stage_name
+  stage_name    = "dev"#aws_api_gateway_deployment.dev.stage_name
   deployment_id = aws_api_gateway_deployment.dev.id
 
   access_log_settings {
@@ -115,4 +115,63 @@ resource "aws_lambda_permission" "lambda_agw_invoke_permission" {
   function_name = var.authenticator_lambda_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_api_gateway_rest_api.api_gtw.execution_arn}/*/*"
+}
+
+
+#### CONFIG CORS #####
+resource "aws_api_gateway_method" "cors_options" {
+  for_each      = var.elb_map
+  rest_api_id   = aws_api_gateway_rest_api.api_gtw.id
+  resource_id   = aws_api_gateway_resource.proxy[each.key].id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "cors_integration" {
+  for_each    = var.elb_map
+  rest_api_id = aws_api_gateway_rest_api.api_gtw.id
+  resource_id = aws_api_gateway_resource.proxy[each.key].id
+  http_method = aws_api_gateway_method.cors_options[each.key].http_method
+  type        = "MOCK"
+
+  request_templates = {
+    "application/json" = "{\"statusCode\": 200}"
+  }
+}
+
+resource "aws_api_gateway_method_response" "cors_method_response" {
+  for_each    = var.elb_map
+  rest_api_id = aws_api_gateway_rest_api.api_gtw.id
+  resource_id = aws_api_gateway_resource.proxy[each.key].id
+  http_method = aws_api_gateway_method.cors_options[each.key].http_method
+  status_code = "200"
+
+  response_models = {
+    "application/json" = "Empty"
+  }
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+
+resource "aws_api_gateway_integration_response" "cors_integration_response" {
+  for_each = var.elb_map
+  depends_on = [
+    aws_api_gateway_method_response.cors_method_response["production"],
+    aws_api_gateway_method_response.cors_method_response["orders"],
+    aws_api_gateway_method_response.cors_method_response["payment"]
+  ]
+  rest_api_id = aws_api_gateway_rest_api.api_gtw.id
+  resource_id = aws_api_gateway_resource.proxy[each.key].id
+  http_method = aws_api_gateway_method.cors_options[each.key].http_method
+  status_code = "200"
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,Cpf'"
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,PUT,POST,PATCH,OPTIONS'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
 }
