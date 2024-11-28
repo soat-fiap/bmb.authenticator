@@ -51,7 +51,6 @@ resource "aws_api_gateway_integration" "integrations" {
     "integration.request.path.proxy"         = "method.request.path.proxy"
     "integration.request.header.accessToken" = "context.authorizer.accessToken"
   }
-
 }
 
 resource "aws_api_gateway_authorizer" "cpf_auth" {
@@ -73,12 +72,18 @@ resource "aws_api_gateway_deployment" "dev" {
   depends_on  = [aws_api_gateway_integration.integrations]
   rest_api_id = aws_api_gateway_rest_api.api_gtw.id
   # stage_name  = "dev"
-  description = sha1(jsonencode(aws_api_gateway_rest_api.api_gtw.body))
+  description =  sha1(jsonencode([
+      aws_api_gateway_rest_api.api_gtw.body,
+      aws_api_gateway_resource.payment_webhook_proxy
+    ]))
   lifecycle {
     create_before_destroy = true
   }
   triggers = {
-    redeployment = sha1(jsonencode(aws_api_gateway_rest_api.api_gtw.body))
+    redeployment = sha1(jsonencode([
+      aws_api_gateway_rest_api.api_gtw.body,
+      aws_api_gateway_resource.payment_webhook_proxy
+    ]))
   }
 }
 
@@ -173,5 +178,48 @@ resource "aws_api_gateway_integration_response" "cors_integration_response" {
     "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,Cpf'"
     "method.response.header.Access-Control-Allow-Methods" = "'GET,PUT,POST,PATCH,OPTIONS'"
     "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
+}
+
+######### NO AUTH WEBHOOK ######
+
+resource "aws_api_gateway_resource" "payment_webhook_resource" {
+  depends_on = [
+    aws_api_gateway_resource.resource["payment"],
+  ]
+  rest_api_id = aws_api_gateway_rest_api.api_gtw.id
+  parent_id   = aws_api_gateway_resource.resource["payment"].id
+  path_part   = "webhook"
+}
+
+resource "aws_api_gateway_resource" "payment_webhook_proxy" {
+  rest_api_id = aws_api_gateway_rest_api.api_gtw.id
+  parent_id   = aws_api_gateway_resource.payment_webhook_resource.id
+  path_part   = "{proxy+}"
+}
+
+resource "aws_api_gateway_method" "payment_webhook_proxy_method" {
+  rest_api_id = aws_api_gateway_rest_api.api_gtw.id
+  resource_id = aws_api_gateway_resource.payment_webhook_proxy.id
+  http_method = "POST"
+  authorization = "NONE"
+  request_parameters = {
+    "method.request.path.proxy" = true
+  }
+}
+
+resource "aws_api_gateway_integration" "payment_webhook_integrations" {
+  rest_api_id             = aws_api_gateway_rest_api.api_gtw.id
+  resource_id             = aws_api_gateway_resource.payment_webhook_proxy.id
+  http_method             = aws_api_gateway_method.payment_webhook_proxy_method.http_method
+  type                    = "HTTP_PROXY"
+  uri                     = "http://${var.elb_map["payment"].dns_name}/api/notifications/{proxy}"
+  integration_http_method = "POST"
+  connection_type         = "VPC_LINK"
+  connection_id           = aws_api_gateway_vpc_link.vpc_link["payment"].id
+
+  timeout_milliseconds = 29000
+  request_parameters = {
+    "integration.request.path.proxy"         = "method.request.path.proxy"
   }
 }
