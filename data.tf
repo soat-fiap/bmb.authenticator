@@ -27,17 +27,17 @@
 #   }
 # }
 
-data "aws_lb" "eks_payment_elb" {
-  tags = {
-    "kubernetes.io/service-name" = "fiap-payment/api-internal"
-  }
-}
+# data "aws_lb" "eks_payment_elb" {
+#   tags = {
+#     "kubernetes.io/service-name" = "fiap-payment/api-internal"
+#   }
+# }
 
-data "aws_lb" "eks_kitchen_elb" {
-  tags = {
-    "kubernetes.io/service-name" = "fiap-production/api-internal"
-  }
-}
+# data "aws_lb" "eks_kitchen_elb" {
+#   tags = {
+#     "kubernetes.io/service-name" = "fiap-production/api-internal"
+#   }
+# }
 
 data "aws_lb" "load_balancers" {
   for_each = var.services

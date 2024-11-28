@@ -45,7 +45,7 @@ variable "jwt_issuer" {
 }
 
 variable "services" {
-   type = map(object({
+  type = map(object({
     namespace = string
     auth      = bool
   }))
@@ -62,9 +62,5 @@ variable "services" {
       namespace = "fiap-orders"
       auth      = true
     }
-    # "log" = {
-    #   namespace = "fiap-log"
-    #   auth = false
-    # }
   }
 }
